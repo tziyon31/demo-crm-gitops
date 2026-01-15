@@ -1,0 +1,27 @@
+{{- if (index .Values "community-operator").createResource }}
+apiVersion: mongodbcommunity.mongodb.com/v1
+kind: MongoDBCommunity
+metadata:
+  name: {{ (index .Values "community-operator").resource.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  members: {{ (index .Values "community-operator").resource.members }}
+  type: ReplicaSet
+  version: "{{ (index .Values "community-operator").resource.version }}"
+  security:
+    authentication:
+      modes: ["SCRAM"]
+  users:
+{{- range (index .Values "community-operator").resource.users }}
+  - name: {{ .name }}
+    db: {{ .db }}
+    passwordSecretRef:
+      name: {{ .passwordSecretRef.name }}
+    roles:
+{{- range .roles }}
+    - name: {{ .name }}
+      db: {{ .db }}
+{{- end }}
+    scramCredentialsSecretName: {{ .scramCredentialsSecretName }}
+{{- end }}
+{{- end }}

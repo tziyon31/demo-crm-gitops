@@ -1,0 +1,29 @@
+# === OS / Editor ===
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# === Logs / temp ===
+*.log
+*.tmp
+
+# === Helm / tooling ===
+charts/*.tgz
+**/Chart.lock.bak
+**/*.bak
+
+# === Local secrets (never commit) ===
+*.env
+*.secret
+*secrets*.yaml
+
+# === Legacy / backups ===
+_legacy_democrm_backup/
+
+# === Terraform / misc (future-proof) ===
+.terraform/
+*.tfstate
+*.tfstate.*
+
