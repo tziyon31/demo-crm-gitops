@@ -11,5 +11,10 @@ spec:
     solvers:
     - http01:
         ingress:
-          ingressClassName: nginx
+          class: nginx
+          podTemplate:
+            metadata:
+              annotations:
+                nginx.org/location-snippets: |
+                  allow all;
 
