@@ -1,27 +1,22 @@
-{{- if (index .Values "community-operator").createResource }}
 apiVersion: mongodbcommunity.mongodb.com/v1
 kind: MongoDBCommunity
 metadata:
-  name: {{ (index .Values "community-operator").resource.name }}
-  namespace: {{ .Release.Namespace }}
+  name: mongodb-replicaset
+  namespace: demo-crm
 spec:
-  members: {{ (index .Values "community-operator").resource.members }}
+  members: 2
   type: ReplicaSet
-  version: "{{ (index .Values "community-operator").resource.version }}"
+  version: "6.0.5"
   security:
     authentication:
       modes: ["SCRAM"]
   users:
-{{- range (index .Values "community-operator").resource.users }}
-  - name: {{ .name }}
-    db: {{ .db }}
-    passwordSecretRef:
-      name: {{ .passwordSecretRef.name }}
-    roles:
-{{- range .roles }}
-    - name: {{ .name }}
-      db: {{ .db }}
-{{- end }}
-    scramCredentialsSecretName: {{ .scramCredentialsSecretName }}
-{{- end }}
-{{- end }}
+    - name: crmuser
+      db: admin
+      passwordSecretRef:
+        name: mongodb-crmuser-password
+      roles:
+        - name: readWrite
+          db: democrm
+      scramCredentialsSecretName: crmuser-scram
+

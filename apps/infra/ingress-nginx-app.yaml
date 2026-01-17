@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: infra-ingress-nginx
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:tziyon31/demo-crm-gitops.git
+    targetRevision: main
+    path: infra-apps/charts/nginx-ingress
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ingress-nginx
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+

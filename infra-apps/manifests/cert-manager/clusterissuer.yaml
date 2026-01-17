@@ -1,22 +1,15 @@
-{{- if .Values.clusterIssuer.enabled }}
-{{- if index .Values "cert-manager" "enabled" }}
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: {{ .Values.clusterIssuer.name }}
-  annotations:
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "5"
-    "helm.sh/hook-delete-policy": before-hook-creation
+  name: letsencrypt-prod
 spec:
   acme:
-    server: {{ .Values.clusterIssuer.server }}
-    email: {{ .Values.clusterIssuer.email }}
+    email: tziyon31@hotmail.com
+    server: https://acme-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
-      name: {{ .Values.clusterIssuer.name }}
+      name: letsencrypt-prod
     solvers:
     - http01:
         ingress:
-          class: {{ .Values.clusterIssuer.solver.ingress.class }}
-{{- end }}
-{{- end }}
+          ingressClassName: nginx
+
