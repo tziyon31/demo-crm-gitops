@@ -5,18 +5,15 @@ metadata:
   namespace: argocd
 spec:
   project: default
-
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
   source:
     repoURL: git@github.com:tziyon31/demo-crm-gitops.git
     targetRevision: main
     path: apps
     directory:
-      recurse: false
-
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: argocd
-
+      recurse: true
   syncPolicy:
     automated:
       prune: true

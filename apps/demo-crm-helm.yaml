@@ -3,8 +3,6 @@ kind: Application
 metadata:
   name: demo-crm-helm
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
 spec:
   project: default
   destination:
@@ -18,4 +16,6 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
 

@@ -16,7 +16,6 @@ spec:
     path: infra-apps/manifests/mongodb
   syncPolicy:
     automated:
-      prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true

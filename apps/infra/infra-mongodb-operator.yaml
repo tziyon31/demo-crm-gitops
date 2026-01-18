@@ -16,7 +16,6 @@ spec:
     path: infra-apps/charts/community-operator
   syncPolicy:
     automated:
-      prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
