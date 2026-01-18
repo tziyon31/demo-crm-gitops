@@ -17,8 +17,8 @@ spec:
       include: '{infra-root.yaml,demo-crm-helm.yaml}'
   syncPolicy:
     automated:
-      prune: true
       selfHeal: true
+      # prune: false  
     syncOptions:
       - CreateNamespace=true
 
