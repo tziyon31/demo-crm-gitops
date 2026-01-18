@@ -13,7 +13,8 @@ spec:
     targetRevision: main
     path: apps
     directory:
-      recurse: true
+      recurse: false
+      include: '{infra-root.yaml,demo-crm-helm.yaml}'
   syncPolicy:
     automated:
       prune: true
