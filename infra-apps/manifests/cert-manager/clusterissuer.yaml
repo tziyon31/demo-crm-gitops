@@ -12,9 +12,4 @@ spec:
     - http01:
         ingress:
           class: ingress-nginx
-          podTemplate:
-            metadata:
-              annotations:
-                nginx.org/location-snippets: |
-                  allow all;
 
