@@ -9,7 +9,7 @@ spec:
     server: https://kubernetes.default.svc
     namespace: argocd
   source:
-    repoURL: git@github.com:tziyon31/demo-crm-gitops.git
+    repoURL: https://github.com/tziyon31/demo-crm-gitops.git
     targetRevision: main
     path: apps/infra
     directory:
