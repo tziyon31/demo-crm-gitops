@@ -11,12 +11,9 @@ spec:
     server: https://kubernetes.default.svc
 
   source:
-    repoURL: https://fluent.github.io/helm-charts
-    chart: fluent-bit
-    targetRevision: "*"
-    helm:
-      valueFiles:
-        - ../../../apps/infra/fluentbit-values.yaml
+    repoURL: git@github.com:tziyon31/demo-crm-gitops.git
+    targetRevision: main
+    path: infra-apps/charts/fluent-bit
 
   syncPolicy:
     automated:
