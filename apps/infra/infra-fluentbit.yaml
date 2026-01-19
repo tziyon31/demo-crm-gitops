@@ -16,7 +16,7 @@ spec:
     targetRevision: "*"
     helm:
       valueFiles:
-        - fluentbit-values.yaml
+        - ../../../apps/infra/fluentbit-values.yaml
 
   syncPolicy:
     automated:
