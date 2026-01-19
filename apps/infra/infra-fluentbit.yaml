@@ -5,15 +5,22 @@ metadata:
   namespace: argocd
 spec:
   project: default
+
   destination:
     namespace: logging
     server: https://kubernetes.default.svc
+
   source:
     repoURL: https://fluent.github.io/helm-charts
     chart: fluent-bit
     targetRevision: "*"
+    helm:
+      valueFiles:
+        - fluentbit-values.yaml
+
   syncPolicy:
     automated:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+
