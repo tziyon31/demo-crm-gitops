@@ -17,9 +17,6 @@ spec:
         replicas: 1
         minimumMasterNodes: 1
         antiAffinity: "soft"
-        esConfig:
-          elasticsearch.yml: |
-            discovery.type: single-node
   syncPolicy:
     automated:
       selfHeal: true
