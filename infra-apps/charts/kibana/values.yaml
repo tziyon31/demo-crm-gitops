@@ -2,7 +2,7 @@
 elasticsearchHosts: "https://elasticsearch-master:9200"
 elasticsearchCertificateSecret: elasticsearch-master-certs
 elasticsearchCertificateAuthoritiesFile: ca.crt
-elasticsearchCredentialSecret: elasticsearch-master-credentials
+elasticsearchCredentialSecret: ""
 
 replicas: 1
 
@@ -10,10 +10,13 @@ replicas: 1
 # This will be appended to the current 'env:' key. You can use any of the kubernetes env
 # syntax here
 extraEnvs:
+  - name: ELASTICSEARCH_SERVICEACCOUNTTOKEN
+    valueFrom:
+      secretKeyRef:
+        name: kibana-service-token
+        key: ELASTICSEARCH_SERVICEACCOUNTTOKEN
   - name: "NODE_OPTIONS"
     value: "--max-old-space-size=1800"
-#  - name: MY_ENVIRONMENT_VAR
-#    value: the_value_goes_here
 
 # Allows you to load environment variables from kubernetes secret or config map
 envFrom: []
@@ -65,10 +68,12 @@ healthCheckPath: "/app/kibana"
 
 # Allows you to add any config files in /usr/share/kibana/config/
 # such as kibana.yml
-kibanaConfig: {}
-#   kibana.yml: |
-#     key:
-#       nestedkey: value
+kibanaConfig:
+  kibana.yml: |
+    server.host: "0.0.0.0"
+    elasticsearch.hosts: ["https://elasticsearch-master:9200"]
+    elasticsearch.serviceAccountToken: ${ELASTICSEARCH_SERVICEACCOUNTTOKEN}
+    elasticsearch.ssl.verificationMode: none
 
 # If Pod Security Policy in use it may be required to specify security context as well as service account
 
@@ -182,4 +187,4 @@ extraObjects:
       namespace: logging
     type: Opaque
     stringData:
-      token: "AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYS1naXRvcHM6amE3TXhlMVhRSUdFTkRTMjFvU1RWdw"
+      ELASTICSEARCH_SERVICEACCOUNTTOKEN: "AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYS1naXRvcHM6amE3TXhlMVhRSUdFTkRTMjFvU1RWdw"
