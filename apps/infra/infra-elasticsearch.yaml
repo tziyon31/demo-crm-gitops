@@ -12,6 +12,11 @@ spec:
     repoURL: https://helm.elastic.co
     chart: elasticsearch
     targetRevision: 8.x
+    helm:
+      values: |
+        replicas: 1
+        minimumMasterNodes: 1
+        antiAffinity: "soft"
   syncPolicy:
     automated:
       selfHeal: true
