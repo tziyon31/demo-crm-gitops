@@ -14,8 +14,7 @@ spec:
     path: infra-apps/charts/kibana
     helm:
       values: |
-        elasticsearchHosts:
-          - "https://elasticsearch-master.logging.svc.cluster.local:9200"
+        elasticsearchHosts: "https://elasticsearch-master.logging.svc.cluster.local:9200"
 
         kibanaConfig:
           kibana.yml: |
