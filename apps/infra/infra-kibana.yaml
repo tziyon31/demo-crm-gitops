@@ -5,22 +5,22 @@ metadata:
   namespace: argocd
 spec:
   project: default
-
   destination:
     namespace: logging
     server: https://kubernetes.default.svc
-
   source:
     repoURL: https://helm.elastic.co
     chart: kibana
-    targetRevision: "*"
+    targetRevision: "8.5.1"
     helm:
       values: |
         elasticsearchHosts: "http://elasticsearch-master.logging.svc.cluster.local:9200"
-
+        serviceAccount:
+          create: false
+        xpack.security.enabled: false
   syncPolicy:
     automated:
-      prune: true
       selfHeal: true
+      prune: true
     syncOptions:
       - CreateNamespace=true
