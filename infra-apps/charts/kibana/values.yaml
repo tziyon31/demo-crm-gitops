@@ -173,3 +173,13 @@ lifecycle: {}
 # postStart:
 #   exec:
 #     command: ["/bin/sh", "-c", "echo Hello from the postStart handler > /usr/share/message"]
+
+extraObjects:
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: kibana-service-token
+      namespace: logging
+    type: Opaque
+    stringData:
+      token: "AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYS1naXRvcHM6amE3TXhlMVhRSUdFTkRTMjFvU1RWdw"
