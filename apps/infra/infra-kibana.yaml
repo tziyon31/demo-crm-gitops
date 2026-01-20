@@ -33,9 +33,6 @@ spec:
               secretKeyRef:
                 name: elasticsearch-master-credentials
                 key: password
-
-        serviceAccount:
-          create: false
   syncPolicy:
     automated:
       selfHeal: true
