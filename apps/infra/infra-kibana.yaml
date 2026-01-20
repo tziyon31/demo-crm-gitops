@@ -6,36 +6,15 @@ metadata:
 spec:
   project: default
   destination:
-    namespace: logging
     server: https://kubernetes.default.svc
+    namespace: logging
   source:
     repoURL: https://github.com/tziyon31/demo-crm-gitops.git
     targetRevision: main
-    path: infra-apps/charts/kibana
-    helm:
-      values: |
-        elasticsearchHosts: "https://elasticsearch-master.logging.svc.cluster.local:9200"
-
-        kibanaConfig:
-          kibana.yml: |
-            elasticsearch.ssl.verificationMode: none
-            elasticsearch.username: ${ELASTICSEARCH_USERNAME}
-            elasticsearch.password: ${ELASTICSEARCH_PASSWORD}
-
-        extraEnvs:
-          - name: ELASTICSEARCH_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: elasticsearch-master-credentials
-                key: username
-          - name: ELASTICSEARCH_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: elasticsearch-master-credentials
-                key: password
+    path: infra/kibana
   syncPolicy:
     automated:
-      selfHeal: true
       prune: true
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
