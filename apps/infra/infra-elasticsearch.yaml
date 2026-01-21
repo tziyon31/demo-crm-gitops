@@ -17,6 +17,11 @@ spec:
         replicas: 1
         minimumMasterNodes: 1
         antiAffinity: "soft"
+        esConfig:
+          elasticsearch.yml: |
+            xpack.security.enabled: true
+            xpack.security.http.ssl.enabled: true
+            xpack.security.transport.ssl.enabled: true
   syncPolicy:
     automated:
       selfHeal: true
