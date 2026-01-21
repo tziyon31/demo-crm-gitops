@@ -22,6 +22,13 @@ spec:
             - containerPort: 5601
               name: http
           env:
+            - name: ELASTICSEARCH_USERNAME
+              value: "elastic"
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: elasticsearch-master-credentials
+                  key: password
             - name: ELASTICSEARCH_SERVICEACCOUNTTOKEN
               valueFrom:
                 secretKeyRef:
