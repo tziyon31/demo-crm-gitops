@@ -21,24 +21,25 @@ spec:
           ports:
             - containerPort: 5601
               name: http
+          env:
+            - name: ELASTICSEARCH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: elasticsearch-master-credentials
+                  key: username
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: elasticsearch-master-credentials
+                  key: password
           volumeMounts:
             - name: kibana-config
               mountPath: /usr/share/kibana/config/kibana.yml
               subPath: kibana.yml
-            - name: kibana-token
-              mountPath: /usr/share/kibana/config/token
-              subPath: token
-              readOnly: true
       volumes:
         - name: kibana-config
           configMap:
             name: kibana-config
-        - name: kibana-token
-          secret:
-            secretName: kibana-service-token
-            items:
-              - key: token
-                path: token
 ---
 apiVersion: v1
 kind: Service
