@@ -25,12 +25,12 @@ spec:
             - name: ELASTICSEARCH_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: elasticsearch-master-credentials
+                  name: kibana-system-credentials
                   key: username
             - name: ELASTICSEARCH_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: elasticsearch-master-credentials
+                  name: kibana-system-credentials
                   key: password
           volumeMounts:
             - name: kibana-config
