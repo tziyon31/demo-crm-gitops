@@ -1,24 +1,26 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: root-apps
+  name: rando
   namespace: argocd
 spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: argocd
+    namespace: rando
   source:
-    repoURL: https://github.com/tziyon31/demo-crm-gitops.git
-    targetRevision: main
-    path: apps
-    directory:
-      recurse: false
-      include: '{infra-root.yaml,demo-crm-helm.yaml,rando.yaml}'
+    repoURL: https://gitlab.com/aransh/rando.git
+    targetRevision: master
+    path: helm/rando
+    helm:
+      values: |
+        env:
+          interval: random
+          count: random
+          maxNum: 50
   syncPolicy:
     automated:
+      prune: true
       selfHeal: true
-      # prune: false  
     syncOptions:
       - CreateNamespace=true
-
