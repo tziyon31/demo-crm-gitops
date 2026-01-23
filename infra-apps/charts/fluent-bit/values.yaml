@@ -47,6 +47,7 @@ config:
         HTTP_Port {{ .Values.metricsPort }}
         Health_Check On
         Trace_Error On
+        Trace_Output On
 
   inputs: |
     [INPUT]
@@ -85,6 +86,8 @@ config:
         HTTP_User ${ES_USER}
         HTTP_Passwd ${ES_PASS}
         Retry_Limit False
+        Trace_Error On
+        Trace_Output On
 
     [OUTPUT]
         Name es
@@ -97,3 +100,5 @@ config:
         HTTP_User ${ES_USER}
         HTTP_Passwd ${ES_PASS}
         Retry_Limit False
+        Trace_Error On
+        Trace_Output On
