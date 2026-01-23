@@ -8,20 +8,23 @@ spec:
   destination:
     namespace: logging
     server: https://kubernetes.default.svc
-  source:
-    repoURL: https://helm.elastic.co
-    chart: elasticsearch
-    targetRevision: 8.x
-    helm:
-      values: |
-        replicas: 1
-        minimumMasterNodes: 1
-        antiAffinity: "soft"
-        esConfig:
-          elasticsearch.yml: |
-            xpack.security.enabled: true
-            xpack.security.http.ssl.enabled: true
-            xpack.security.transport.ssl.enabled: true
+  sources:
+    - repoURL: https://helm.elastic.co
+      chart: elasticsearch
+      targetRevision: 8.x
+      helm:
+        values: |
+          replicas: 1
+          minimumMasterNodes: 1
+          antiAffinity: "soft"
+          esConfig:
+            elasticsearch.yml: |
+              xpack.security.enabled: true
+              xpack.security.http.ssl.enabled: true
+              xpack.security.transport.ssl.enabled: true
+    - repoURL: https://github.com/tziyon31/demo-crm-gitops.git
+      targetRevision: main
+      path: infra/elasticsearch
   syncPolicy:
     automated:
       selfHeal: true
