@@ -1,4 +1,18 @@
 logLevel: info
+
+# Environment variables for Fluent Bit container
+env:
+  - name: ES_USER
+    valueFrom:
+      secretKeyRef:
+        name: elasticsearch-master-credentials
+        key: username
+  - name: ES_PASS
+    valueFrom:
+      secretKeyRef:
+        name: elasticsearch-master-credentials
+        key: password
+
 # luaScripts:
 #   setIndex.lua: |
 #     function set_index(tag, timestamp, record)
@@ -63,31 +77,23 @@ config:
     [OUTPUT]
         Name es
         Match kube.*
-        Index fluent-bit
-        Type  _doc
         Host elasticsearch-master
         Port 9200
-        HTTP_User elastic
-        HTTP_Passwd icWlrLqHM4q649sL
-        tls On
-        tls.verify Off
         Logstash_Format On
-        Logstash_Prefix logstash
+        TLS On
+        TLS.Verify Off
+        HTTP_User ${ES_USER}
+        HTTP_Passwd ${ES_PASS}
         Retry_Limit False
-        Suppress_Type_Name On
 
     [OUTPUT]
         Name es
         Match host.*
-        Index fluent-bit
-        Type  _doc
         Host elasticsearch-master
         Port 9200
-        HTTP_User elastic
-        HTTP_Passwd icWlrLqHM4q649sL
-        tls On
-        tls.verify Off
         Logstash_Format On
-        Logstash_Prefix node
+        TLS On
+        TLS.Verify Off
+        HTTP_User ${ES_USER}
+        HTTP_Passwd ${ES_PASS}
         Retry_Limit False
-        Suppress_Type_Name On
