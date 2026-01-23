@@ -25,6 +25,13 @@ spec:
     - repoURL: https://github.com/tziyon31/demo-crm-gitops.git
       targetRevision: main
       path: infra/elasticsearch
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: elasticsearch-master-credentials
+      namespace: logging
+      jqPathExpressions:
+        - .data
   syncPolicy:
     automated:
       selfHeal: true
