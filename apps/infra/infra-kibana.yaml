@@ -3,18 +3,27 @@ kind: Application
 metadata:
   name: infra-kibana
   namespace: argocd
+  annotations:
+    
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   project: default
+
   destination:
     server: https://kubernetes.default.svc
     namespace: logging
+
   source:
-    repoURL: https://github.com/tziyon31/demo-crm-gitops.git
+    repoURL: git@github.com:tziyon31/demo-crm-gitops.git
     targetRevision: main
-    path: infra/kibana
+    path: infra-apps/charts/kibana
+    helm:
+      valueFiles:
+        - values.yaml
+
   syncPolicy:
     automated:
-      prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+

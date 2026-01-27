@@ -1,7 +1,12 @@
 apiVersion: v2
-name: fluent-bit-wrapper
+name: fluent-bit
+description: Local wrapper chart for Fluent Bit using custom values for EFK stack
+type: application
 version: 0.1.0
+appVersion: "2.0.0"
+
 dependencies:
   - name: fluent-bit
-    version: "*"
+    version: 0.54.1
     repository: https://fluent.github.io/helm-charts
+

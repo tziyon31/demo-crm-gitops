@@ -3,37 +3,44 @@ kind: Application
 metadata:
   name: infra-elasticsearch
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
+
   destination:
-    namespace: logging
     server: https://kubernetes.default.svc
-  sources:
-    - repoURL: https://helm.elastic.co
-      chart: elasticsearch
-      targetRevision: 8.x
-      helm:
-        values: |
-          replicas: 1
-          minimumMasterNodes: 1
-          antiAffinity: "soft"
-          esConfig:
-            elasticsearch.yml: |
-              xpack.security.enabled: true
-              xpack.security.http.ssl.enabled: true
-              xpack.security.transport.ssl.enabled: true
-    - repoURL: https://github.com/tziyon31/demo-crm-gitops.git
-      targetRevision: main
-      path: infra/elasticsearch
-  ignoreDifferences:
-    - group: ""
-      kind: Secret
-      name: elasticsearch-master-credentials
-      namespace: logging
-      jqPathExpressions:
-        - .data
+    namespace: logging
+
+  source:
+    repoURL: https://helm.elastic.co
+    chart: elasticsearch
+    targetRevision: 8.5.1
+    helm:
+      values: |
+        replicas: 1
+        minimumMasterNodes: 1
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "2Gi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+
+        volumeClaimTemplate:
+          accessModes: [ "ReadWriteOnce" ]
+          resources:
+            requests:
+              storage: 10Gi
+
+        # Service will be elasticsearch-master by default, which matches Kibana
+        service:
+          type: ClusterIP
+
   syncPolicy:
     automated:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+

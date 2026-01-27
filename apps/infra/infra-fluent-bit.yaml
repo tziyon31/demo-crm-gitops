@@ -1,19 +1,24 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: infra-fluentbit
+  name: infra-fluent-bit
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   project: default
 
   destination:
-    namespace: logging
     server: https://kubernetes.default.svc
+    namespace: logging
 
   source:
     repoURL: git@github.com:tziyon31/demo-crm-gitops.git
     targetRevision: main
     path: infra-apps/charts/fluent-bit
+    helm:
+      valueFiles:
+        - values.yaml
 
   syncPolicy:
     automated:
