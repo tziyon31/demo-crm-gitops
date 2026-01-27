@@ -14,7 +14,7 @@ spec:
     namespace: logging
 
   source:
-    repoURL: git@github.com:tziyon31/demo-crm-gitops.git
+    repoURL: https://github.com/tziyon31/demo-crm-gitops.git
     targetRevision: main
     path: infra-apps/charts/kibana
     helm:

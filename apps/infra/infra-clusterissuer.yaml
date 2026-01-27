@@ -11,7 +11,7 @@ spec:
     server: https://kubernetes.default.svc
     namespace: cert-manager
   source:
-    repoURL: git@github.com:tziyon31/demo-crm-gitops.git
+    repoURL: https://github.com/tziyon31/demo-crm-gitops.git
     targetRevision: main
     path: infra-apps/manifests/cert-manager
   syncPolicy:
