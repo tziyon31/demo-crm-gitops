@@ -38,6 +38,10 @@ spec:
         service:
           type: ClusterIP
 
+        # Fix password in Git - this will create consistent Secret
+        secret:
+          password: mypassword
+
   syncPolicy:
     automated:
       selfHeal: true

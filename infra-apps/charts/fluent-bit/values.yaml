@@ -1,75 +1,84 @@
-logLevel: info
+fluent-bit:
+  logLevel: info
+  flush: 1
+  metricsPort: 2020
 
-config:
-  service: |
-    [SERVICE]
-        Daemon Off
-        Flush {{ .Values.flush }}
-        Log_Level debug
-        Parsers_File /fluent-bit/etc/parsers.conf
-        Parsers_File /fluent-bit/etc/conf/custom_parsers.conf
-        HTTP_Server On
-        HTTP_Listen 0.0.0.0
-        HTTP_Port {{ .Values.metricsPort }}
-        Health_Check On
-        Trace_Error On
+  env:
+    - name: ES_USER
+      valueFrom:
+        secretKeyRef:
+          name: elasticsearch-master-credentials
+          key: username
+    - name: ES_PASS
+      valueFrom:
+        secretKeyRef:
+          name: elasticsearch-master-credentials
+          key: password
 
-  inputs: |
-    [INPUT]
-        Name tail
-        Path /var/log/containers/rando*.log
-        multiline.parser docker, cri
-        Tag kube.*
-        Mem_Buf_Limit 100MB
-        Skip_Long_Lines On
-        Refresh_Interval 5
+  config:
+    service: |
+      [SERVICE]
+          Daemon Off
+          Flush {{ .Values.fluent-bit.flush }}
+          Log_Level {{ .Values.fluent-bit.logLevel }}
+          Parsers_File /fluent-bit/etc/parsers.conf
+          Parsers_File /fluent-bit/etc/conf/custom_parsers.conf
+          HTTP_Server On
+          HTTP_Listen 0.0.0.0
+          HTTP_Port {{ .Values.fluent-bit.metricsPort }}
+          Health_Check On
+          Trace_Error On
 
-    [INPUT]
-        Name systemd
-        Tag host.*
-        Systemd_Filter _SYSTEMD_UNIT=kubelet.service
-        Read_From_Tail On
+    inputs: |
+      [INPUT]
+          Name tail
+          Path /var/log/containers/rando*.log
+          multiline.parser docker, cri
+          Tag kube.*
+          Mem_Buf_Limit 100MB
+          Skip_Long_Lines On
+          Refresh_Interval 5
 
-  filters: |
-    [FILTER]
-        Name kubernetes
-        Match kube.*
-        Merge_Log On
-        Keep_Log Off
-        Buffer_Size False
-        K8S-Logging.Parser On
-    
-  outputs: |
-    [OUTPUT]
-        Name es
-        Match kube.*
-        Index fluent-bit
-        Type  _doc
-        Host elasticsearch-master
-        Port 9200
-        # אם Elasticsearch מוגדר עם אבטחה, עדכן כאן משתמש/סיסמה מתאימים
-        #HTTP_User elastic
-        #HTTP_Passwd CHANGEME
-        tls On
-        tls.verify Off
-        Logstash_Format On
-        Logstash_Prefix logstash
-        Retry_Limit False
-        Suppress_Type_Name On
+      [INPUT]
+          Name systemd
+          Tag host.*
+          Systemd_Filter _SYSTEMD_UNIT=kubelet.service
+          Read_From_Tail On
 
-    [OUTPUT]
-        Name es
-        Match host.*
-        Index fluent-bit
-        Type  _doc
-        Host elasticsearch-master
-        Port 9200
-        #HTTP_User elastic
-        #HTTP_Passwd CHANGEME
-        tls On
-        tls.verify Off
-        Logstash_Format On
-        Logstash_Prefix node
-        Retry_Limit False
-        Suppress_Type_Name On
+    filters: |
+      [FILTER]
+          Name kubernetes
+          Match kube.*
+          Merge_Log On
+          Keep_Log Off
+          Buffer_Size False
+          K8S-Logging.Parser On
 
+    outputs: |
+      [OUTPUT]
+          Name es
+          Match kube.*
+          Host elasticsearch-master
+          Port 9200
+          tls On
+          tls.verify Off
+          HTTP_User ${ES_USER}
+          HTTP_Passwd ${ES_PASS}
+          Logstash_Format On
+          Logstash_Prefix logstash
+          Retry_Limit False
+          Suppress_Type_Name On
+
+      [OUTPUT]
+          Name es
+          Match host.*
+          Host elasticsearch-master
+          Port 9200
+          tls On
+          tls.verify Off
+          HTTP_User ${ES_USER}
+          HTTP_Passwd ${ES_PASS}
+          Logstash_Format On
+          Logstash_Prefix node
+          Retry_Limit False
+          Suppress_Type_Name On
