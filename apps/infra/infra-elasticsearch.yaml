@@ -40,7 +40,7 @@ spec:
 
         # Fix password in Git - this will create consistent Secret
         secret:
-          password: mypassword
+          password: mypassword123!
 
   syncPolicy:
     automated:
