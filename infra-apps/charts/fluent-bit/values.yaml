@@ -27,7 +27,7 @@ fluent-bit:
     inputs: |
       [INPUT]
           Name tail
-          Path /var/log/containers/rando*.log
+          Path /var/log/containers/*.log
           Tag kube.*
           Mem_Buf_Limit 100MB
           Skip_Long_Lines On
