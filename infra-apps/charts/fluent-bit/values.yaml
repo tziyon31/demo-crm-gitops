@@ -52,3 +52,4 @@ fluent-bit:
           HTTP_Passwd ${ES_PASS}
           Logstash_Format On
           Logstash_Prefix logstash
+          Suppress_Type_Name On
