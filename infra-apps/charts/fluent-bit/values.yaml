@@ -1,5 +1,5 @@
 fluent-bit:
-  env:
+  extraEnv:
     - name: ES_USER
       valueFrom:
         secretKeyRef:
