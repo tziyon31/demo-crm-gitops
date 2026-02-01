@@ -48,6 +48,11 @@ fluent-bit:
           K8S-Logging.Parser On
           K8S-Logging.Exclude On
 
+      [FILTER]
+          Name modify
+          Match *
+          Remove kubernetes.labels
+
     outputs: |
       [OUTPUT]
           Name es
@@ -62,7 +67,6 @@ fluent-bit:
           Index kubernetes-logs
           Replace_Dots On
           Trace_Error On
-          Remove_keys kubernetes.labels.app
 
           HTTP_User ${ES_USER}
           HTTP_Passwd ${ES_PASS}
@@ -80,7 +84,6 @@ fluent-bit:
           Index node-logs
           Replace_Dots On
           Trace_Error On
-          Remove_keys kubernetes.labels.app
 
           HTTP_User ${ES_USER}
           HTTP_Passwd ${ES_PASS}
