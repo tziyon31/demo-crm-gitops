@@ -14,7 +14,7 @@ extraEnvs:
     valueFrom:
       secretKeyRef:
         name: kibana-service-token
-        key: ELASTICSEARCH_SERVICEACCOUNTTOKEN
+        key: token
   - name: "NODE_OPTIONS"
     value: "--max-old-space-size=1800"
 
@@ -88,7 +88,7 @@ securityContext:
   runAsNonRoot: true
   runAsUser: 1000
 
-serviceAccount: ""
+serviceAccount: "kibana-sa"
 
 # Whether or not to automount the service account token in the pod. Normally, Kibana does not need this
 automountToken: true
