@@ -60,6 +60,7 @@ fluent-bit:
           Logstash_Format Off
           Suppress_Type_Name On
           Index kubernetes-logs
+          Trace_Error On
 
           HTTP_User ${ES_USER}
           HTTP_Passwd ${ES_PASS}
@@ -75,6 +76,7 @@ fluent-bit:
           Logstash_Format Off
           Suppress_Type_Name On
           Index node-logs
+          Trace_Error On
 
           HTTP_User ${ES_USER}
           HTTP_Passwd ${ES_PASS}
