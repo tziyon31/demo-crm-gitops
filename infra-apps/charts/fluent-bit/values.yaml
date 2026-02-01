@@ -56,10 +56,13 @@ fluent-bit:
           Port 9200
           tls On
           tls.verify Off
-          HTTP_User elastic
-          HTTP_Passwd mypassword123!
+
           Logstash_Format Off
+          Suppress_Type_Name On
           Index kubernetes-logs
+
+          HTTP_User ${ES_USER}
+          HTTP_Passwd ${ES_PASS}
 
       [OUTPUT]
           Name es
@@ -68,7 +71,10 @@ fluent-bit:
           Port 9200
           tls On
           tls.verify Off
-          HTTP_User elastic
-          HTTP_Passwd mypassword123!
+
           Logstash_Format Off
+          Suppress_Type_Name On
           Index node-logs
+
+          HTTP_User ${ES_USER}
+          HTTP_Passwd ${ES_PASS}
