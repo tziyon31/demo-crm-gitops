@@ -45,10 +45,22 @@ config:
         Match kube.*
         Host elasticsearch-master
         Port 9200
+        Logstash_Format On
+        Retry_Limit False
         tls On
         tls.verify Off
-        HTTP_User ${ES_USER}
-        HTTP_Passwd ${ES_PASS}
+        HTTP_User elastic
+        HTTP_Passwd mypassword123!
+
+    [OUTPUT]
+        Name es
+        Match host.*
+        Host elasticsearch-master
+        Port 9200
         Logstash_Format On
-        Logstash_Prefix logstash
-        Suppress_Type_Name On
+        Logstash_Prefix node
+        Retry_Limit False
+        tls On
+        tls.verify Off
+        HTTP_User elastic
+        HTTP_Passwd mypassword123!
