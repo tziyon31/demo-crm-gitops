@@ -60,6 +60,7 @@ fluent-bit:
           Logstash_Format Off
           Suppress_Type_Name On
           Index kubernetes-logs
+          Replace_Dots On
           Trace_Error On
 
           HTTP_User ${ES_USER}
@@ -76,6 +77,7 @@ fluent-bit:
           Logstash_Format Off
           Suppress_Type_Name On
           Index node-logs
+          Replace_Dots On
           Trace_Error On
 
           HTTP_User ${ES_USER}
