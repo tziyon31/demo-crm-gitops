@@ -34,3 +34,14 @@ heritage: {{ .Release.Service }}
 {{- define "kibana.home_dir" -}}
 /usr/share/kibana
 {{- end -}}
+
+{{/*
+Service Account Name
+*/}}
+{{- define "kibana.serviceAccountName" -}}
+{{- if .Values.serviceAccount -}}
+{{- .Values.serviceAccount -}}
+{{- else -}}
+{{- include "kibana.fullname" . -}}
+{{- end -}}
+{{- end -}}
