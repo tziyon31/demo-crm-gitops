@@ -21,6 +21,9 @@ spec:
           projected:
             sources:
               - serviceAccountToken:
+                  # audience must match Elasticsearch token_service configuration
+                  # Ensure Elasticsearch has: xpack.security.authc.token.enabled: true
+                  # and the allowed_audiences includes "elastic"
                   audience: elastic
                   expirationSeconds: 600
                   path: token
@@ -48,9 +51,18 @@ spec:
                   "roles": ["kibana_admin"],
                   "enabled": true,
                   "rules": {
-                    "field": {
-                      "metadata.token.service_account.name": "{{ include "kibana.serviceAccountName" . }}"
-                    }
+                    "all": [
+                      {
+                        "field": {
+                          "metadata.token.service_account.name": "{{ include "kibana.serviceAccountName" . }}"
+                        }
+                      },
+                      {
+                        "field": {
+                          "metadata.token.service_account.namespace": "{{ .Release.Namespace }}"
+                        }
+                      }
+                    ]
                   }
                 }')
               

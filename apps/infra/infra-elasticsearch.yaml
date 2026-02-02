@@ -42,6 +42,11 @@ spec:
         secret:
           password: mypassword123!
 
+        # Enable Service Account Token authentication for Kibana
+        extraConfig: |
+          xpack.security.authc.token.enabled: true
+          xpack.security.authc.token.token_service.enabled: true
+
   syncPolicy:
     automated:
       selfHeal: true
