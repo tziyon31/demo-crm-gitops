@@ -1,0 +1,57 @@
+{{- if .Values.serviceAccount.create -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "kibana.fullname" . }}-role-mapping
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+        release: {{ .Release.Name | quote }}
+    spec:
+      serviceAccountName: {{ include "kibana.serviceAccountName" . }}
+      restartPolicy: OnFailure
+      containers:
+        - name: create-role-mapping
+          image: curlimages/curl:latest
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+              
+              echo "Creating role mapping for Kibana service account..."
+              
+              RESPONSE=$(curl -s -w "\n%{http_code}" -X PUT -k \
+                {{ .Values.elasticsearchHosts }}/_security/role_mapping/kibana \
+                -H "Content-Type: application/json" \
+                -H "Authorization: Bearer $TOKEN" \
+                -d '{
+                  "roles": ["kibana_admin"],
+                  "enabled": true,
+                  "rules": {
+                    "field": {
+                      "metadata.token.service_account.name": "{{ include "kibana.serviceAccountName" . }}"
+                    }
+                  }
+                }')
+              
+              HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+              BODY=$(echo "$RESPONSE" | sed '$d')
+              
+              if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 201 ]; then
+                echo "Role mapping created successfully!"
+                echo "$BODY"
+                exit 0
+              else
+                echo "Error: Failed to create role mapping. HTTP code: $HTTP_CODE"
+                echo "$BODY"
+                exit 1
+              fi
+{{- end -}}

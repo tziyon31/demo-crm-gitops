@@ -40,7 +40,7 @@ spec:
 {{- end }}
       securityContext:
 {{ toYaml .Values.podSecurityContext | indent 8 }}
-      {{- if .Values.serviceAccount }}
+      {{- if or .Values.serviceAccount.create .Values.serviceAccount.name .Values.serviceAccount }}
       serviceAccountName: {{ include "kibana.serviceAccountName" . }}
       {{- end }}
       {{- if .Values.hostAliases }}

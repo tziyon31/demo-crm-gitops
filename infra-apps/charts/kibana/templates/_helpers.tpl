@@ -39,7 +39,9 @@ heritage: {{ .Release.Service }}
 Service Account Name
 */}}
 {{- define "kibana.serviceAccountName" -}}
-{{- if .Values.serviceAccount -}}
+{{- if .Values.serviceAccount.name -}}
+{{- .Values.serviceAccount.name -}}
+{{- else if .Values.serviceAccount -}}
 {{- .Values.serviceAccount -}}
 {{- else -}}
 {{- include "kibana.fullname" . -}}
