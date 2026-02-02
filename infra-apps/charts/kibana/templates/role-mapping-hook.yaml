@@ -16,15 +16,27 @@ spec:
     spec:
       serviceAccountName: {{ include "kibana.serviceAccountName" . }}
       restartPolicy: OnFailure
+      volumes:
+        - name: kibana-sa-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  audience: elastic
+                  expirationSeconds: 600
+                  path: token
       containers:
         - name: create-role-mapping
           image: curlimages/curl:latest
+          volumeMounts:
+            - name: kibana-sa-token
+              mountPath: /var/run/kibana-token
+              readOnly: true
           command:
             - sh
             - -c
             - |
               set -e
-              TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+              TOKEN=$(cat /var/run/kibana-token/token)
               
               echo "Creating role mapping for Kibana service account..."
               
