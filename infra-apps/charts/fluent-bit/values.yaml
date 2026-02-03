@@ -82,7 +82,6 @@ fluent-bit:
           Match kube.*
           Merge_Log On
           Keep_Log Off
-          K8S-Logging.Parser On
           K8S-Logging.Exclude On
 
       [FILTER]
@@ -90,7 +89,6 @@ fluent-bit:
           Match nginx.*
           Merge_Log On
           Keep_Log Off
-          K8S-Logging.Parser On
           K8S-Logging.Exclude On
 
       [FILTER]
@@ -98,7 +96,6 @@ fluent-bit:
           Match rando.*
           Merge_Log On
           Keep_Log Off
-          K8S-Logging.Parser On
           K8S-Logging.Exclude On
 
       [FILTER]
