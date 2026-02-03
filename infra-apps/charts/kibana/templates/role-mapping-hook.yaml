@@ -15,33 +15,22 @@ spec:
         release: {{ .Release.Name | quote }}
     spec:
       serviceAccountName: {{ include "kibana.serviceAccountName" . }}
-      # Disable default token mount - we use projected token with audience instead
-      automountServiceAccountToken: false
       restartPolicy: OnFailure
-      volumes:
-        - name: kibana-sa-token
-          projected:
-            sources:
-              - serviceAccountToken:
-                  # audience must match Elasticsearch token_service configuration
-                  # Ensure Elasticsearch has: xpack.security.authc.token.enabled: true
-                  # Use "elasticsearch" as audience (not "elastic")
-                  audience: elasticsearch
-                  expirationSeconds: 600
-                  path: token
       containers:
         - name: create-role-mapping
           image: curlimages/curl:latest
-          volumeMounts:
-            - name: kibana-sa-token
-              mountPath: /var/run/kibana-token
-              readOnly: true
+          env:
+            - name: ELASTICSEARCH_SERVICEACCOUNTTOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: kibana-service-token
+                  key: token
           command:
             - sh
             - -c
             - |
               set -e
-              TOKEN=$(cat /var/run/kibana-token/token)
+              TOKEN="$ELASTICSEARCH_SERVICEACCOUNTTOKEN"
               
               echo "Creating role mapping for Kibana service account..."
               
