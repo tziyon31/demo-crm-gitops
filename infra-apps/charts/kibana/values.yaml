@@ -9,12 +9,10 @@ replicas: 1
 # Extra environment variables to append to this nodeGroup
 # This will be appended to the current 'env:' key. You can use any of the kubernetes env
 # syntax here
+# ELASTICSEARCH_SERVICEACCOUNTTOKEN will be read from /var/run/kibana-token/token file
+# The init container copies the projected token to the shared volume
+# The main container reads it via command that sets the env var
 extraEnvs:
-  - name: ELASTICSEARCH_SERVICEACCOUNTTOKEN
-    valueFrom:
-      secretKeyRef:
-        name: kibana-service-token
-        key: token
   - name: "NODE_OPTIONS"
     value: "--max-old-space-size=1800"
 
@@ -72,6 +70,10 @@ kibanaConfig:
   kibana.yml: |
     server.host: "0.0.0.0"
     elasticsearch.hosts: ["https://elasticsearch-master:9200"]
+    # Token is read from file mounted at /var/run/kibana-token/token
+    # This is a projected token with audience: elasticsearch
+    # The init container copies it to /var/run/kibana-token/token (shared volume)
+    # Kibana reads it via ELASTICSEARCH_SERVICEACCOUNTTOKEN env var
     elasticsearch.serviceAccountToken: ${ELASTICSEARCH_SERVICEACCOUNTTOKEN}
     elasticsearch.ssl.verificationMode: none
 

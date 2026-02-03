@@ -50,6 +50,17 @@ spec:
         - name: elasticsearch-certs
           secret:
             secretName: {{ .Values.elasticsearchCertificateSecret }}
+        {{- if and .Values.serviceAccount.create (or .Values.serviceAccount.name .Values.serviceAccount) }}
+        - name: kibana-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: token
+                  audience: elasticsearch
+                  expirationSeconds: 600
+        - name: shared-token
+          emptyDir: {}
+        {{- end }}
         {{- if .Values.kibanaConfig }}
         - name: kibanaconfig
           configMap:
@@ -80,6 +91,24 @@ spec:
 {{ toYaml .Values.imagePullSecrets | indent 8 }}
     {{- end }}
       initContainers:
+      {{- if and .Values.serviceAccount.create (or .Values.serviceAccount.name .Values.serviceAccount) }}
+      - name: token-reader
+        image: busybox:latest
+        command:
+          - sh
+          - -c
+          - |
+            # Read the projected token with audience: elasticsearch
+            TOKEN=$(cat /var/run/kibana-token/token)
+            # Write token to shared volume for Kibana to read
+            echo -n "$TOKEN" > /shared/token
+        volumeMounts:
+          - name: kibana-token
+            mountPath: /var/run/kibana-token
+            readOnly: true
+          - name: shared-token
+            mountPath: /shared
+      {{- end }}
       {{- if .Values.extraInitContainers }}
       # Currently some extra blocks accept strings
       # to continue with backwards compatibility this is being kept
@@ -96,6 +125,16 @@ spec:
 {{ toYaml .Values.securityContext | indent 10 }}
         image: "{{ .Values.image }}:{{ .Values.imageTag }}"
         imagePullPolicy: "{{ .Values.imagePullPolicy }}"
+        {{- if and .Values.serviceAccount.create (or .Values.serviceAccount.name .Values.serviceAccount) }}
+        command:
+          - /bin/bash
+          - -c
+          - |
+            # Read the projected token with audience: elasticsearch from shared volume
+            export ELASTICSEARCH_SERVICEACCOUNTTOKEN=$(cat /var/run/kibana-token/token)
+            # Start Kibana with the token available as env var
+            exec /usr/local/bin/kibana-docker
+        {{- end }}
         env:
           {{- if .Values.elasticsearchURL }}
           - name: ELASTICSEARCH_URL
@@ -108,6 +147,18 @@ spec:
             value: "{{ template "kibana.home_dir" . }}/config/certs/{{ .Values.elasticsearchCertificateAuthoritiesFile }}"
           - name: SERVER_HOST
             value: "{{ .Values.serverHost }}"
+          {{- if and .Values.serviceAccount.create (or .Values.serviceAccount.name .Values.serviceAccount) }}
+          - name: ELASTICSEARCH_SERVICEACCOUNTTOKEN
+            valueFrom:
+              secretKeyRef:
+                name: kibana-service-token
+                key: token
+                optional: true
+          # The actual token used is the projected token with audience: elasticsearch
+          # It's available at /var/run/kibana-token/token (shared volume from init container)
+          # The init container reads it from the projected volume and copies it to shared volume
+          # Kibana reads it via ELASTICSEARCH_SERVICEACCOUNTTOKEN env var (from secret) or from file
+          {{- end }}
 {{- if .Values.extraEnvs }}
 {{ toYaml .Values.extraEnvs | indent 10 }}
 {{- end }}
@@ -158,6 +209,11 @@ spec:
           - name: elasticsearch-certs
             mountPath: {{ template "kibana.home_dir" . }}/config/certs
             readOnly: true
+          {{- if and .Values.serviceAccount.create (or .Values.serviceAccount.name .Values.serviceAccount) }}
+          - name: shared-token
+            mountPath: /var/run/kibana-token
+            readOnly: true
+          {{- end }}
           {{- range .Values.secretMounts }}
           - name: {{ .name }}
             mountPath: {{ .path }}
