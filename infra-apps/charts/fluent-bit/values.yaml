@@ -24,7 +24,44 @@ fluent-bit:
           HTTP_Port 2020
           Health_Check On
 
+    customParsers: |
+      [PARSER]
+          Name        nginx
+          Format      regex
+          Regex       ^(?<remote>[^ ]*) - (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+) (?<uri>\S+) (?<protocol>[^\"]*)" (?<status>[0-9]+) (?<bytes_sent>[0-9]+) "(?<referer>[^\"]*)" "(?<agent>[^\"]*)"
+          Time_Key    time
+          Time_Format %d/%b/%Y:%H:%M:%S %z
+
+      [PARSER]
+          Name        rando
+          Format      json
+          Time_Key    time
+          Time_Format %Y-%m-%dT%H:%M:%S.%L
+          Time_Keep   On
+
     inputs: |
+      [INPUT]
+          Name tail
+          Path /var/log/containers/*nginx*.log
+          Parser nginx
+          Tag nginx.*
+          Refresh_Interval 5
+          Rotate_Wait 30
+          Mem_Buf_Limit 5MB
+          Skip_Long_Lines On
+          Docker_Mode On
+
+      [INPUT]
+          Name tail
+          Path /var/log/containers/*rando*.log
+          Parser rando
+          Tag rando.*
+          Refresh_Interval 5
+          Rotate_Wait 30
+          Mem_Buf_Limit 5MB
+          Skip_Long_Lines On
+          Docker_Mode On
+
       [INPUT]
           Name tail
           Path /var/log/containers/*.log
@@ -43,6 +80,22 @@ fluent-bit:
       [FILTER]
           Name kubernetes
           Match kube.*
+          Merge_Log On
+          Keep_Log Off
+          K8S-Logging.Parser On
+          K8S-Logging.Exclude On
+
+      [FILTER]
+          Name kubernetes
+          Match nginx.*
+          Merge_Log On
+          Keep_Log Off
+          K8S-Logging.Parser On
+          K8S-Logging.Exclude On
+
+      [FILTER]
+          Name kubernetes
+          Match rando.*
           Merge_Log On
           Keep_Log Off
           K8S-Logging.Parser On
