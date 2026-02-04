@@ -28,7 +28,7 @@ fluent-bit:
       [PARSER]
           Name        nginx
           Format      regex
-          Regex       ^(?<remote>[^ ]*) (?<ident>[^ ]*) (?<user>[^ ]*) \[(?<time>[^\]]+)\] "(?<method>[A-Z]+) (?<uri>[^ ]+) (?<protocol>[^\"]+)" (?<status>[0-9]+) (?<bytes_sent>[0-9]+) "(?<referer>[^\"]*)" "(?<agent>[^\"]*)".*
+          Regex       ^(?<remote>[^ ]*) - - \[(?<time>[^\]]+)\] "(?<method>[A-Z]+) (?<uri>[^ ]+) (?<protocol>[^"]+)" (?<status>[0-9]+) (?<bytes_sent>[0-9]+) "(?<referer>[^"]*)" "(?<agent>[^"]*)".*
           Time_Key    time
           Time_Format %d/%b/%Y:%H:%M:%S %z
 
