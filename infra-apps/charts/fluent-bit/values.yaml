@@ -119,7 +119,7 @@ fluent-bit:
           Suppress_Type_Name On
           Index kubernetes-logs
           Replace_Dots On
-          Trace_Error On
+          Trace_Error Off
 
           HTTP_User ${ES_USER}
           HTTP_Passwd ${ES_PASS}
@@ -136,7 +136,7 @@ fluent-bit:
           Suppress_Type_Name On
           Index node-logs
           Replace_Dots On
-          Trace_Error On
+          Trace_Error Off
 
           HTTP_User ${ES_USER}
           HTTP_Passwd ${ES_PASS}

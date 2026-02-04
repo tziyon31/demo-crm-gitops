@@ -32,7 +32,7 @@ spec:
           accessModes: [ "ReadWriteOnce" ]
           resources:
             requests:
-              storage: 10Gi
+              storage: 30Gi
 
         # Service will be elasticsearch-master by default, which matches Kibana
         service:
