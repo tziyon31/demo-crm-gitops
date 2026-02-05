@@ -1,5 +1,5 @@
 ---
-elasticsearchHosts: "https://elasticsearch-master:9200"
+elasticsearchHosts: "https://elasticsearch-master.logging.svc:9200"
 elasticsearchCertificateSecret: elasticsearch-master-certs
 elasticsearchCertificateAuthoritiesFile: ca.crt
 elasticsearchCredentialSecret: ""
@@ -69,7 +69,7 @@ healthCheckPath: "/app/kibana"
 kibanaConfig:
   kibana.yml: |
     server.host: "0.0.0.0"
-    elasticsearch.hosts: ["https://elasticsearch-master:9200"]
+    elasticsearch.hosts: ["https://elasticsearch-master.logging.svc:9200"]
     # Token is read from file mounted at /var/run/kibana-token/token
     # This is a projected token with audience: elasticsearch
     # The init container copies it to /var/run/kibana-token/token (shared volume)
