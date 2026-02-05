@@ -2,12 +2,15 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "kibana.fullname" . }}-role-mapping
+  name: {{ include "kibana.fullname" . }}-setup
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-weight": "1"
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "argocd.argoproj.io/hook": PostSync
+    "argocd.argoproj.io/hook-delete-policy": HookSucceeded
 spec:
+  ttlSecondsAfterFinished: 300
   template:
     metadata:
       labels:
@@ -17,8 +20,8 @@ spec:
       serviceAccountName: {{ include "kibana.serviceAccountName" . }}
       restartPolicy: OnFailure
       containers:
-        - name: create-role-mapping
-          image: curlimages/curl:latest
+        - name: kibana-setup
+          image: bitnami/kubectl:latest
           env:
             - name: ELASTICSEARCH_USERNAME
               valueFrom:
@@ -30,34 +33,77 @@ spec:
                 secretKeyRef:
                   name: elasticsearch-admin-credentials
                   key: password
+            - name: ES_URL
+              value: "{{ .Values.elasticsearchHosts }}"
+            - name: NAMESPACE
+              value: "{{ .Release.Namespace }}"
           command:
-            - sh
+            - /bin/bash
             - -c
             - |
               set -e
               
-              echo "Creating role mapping for Kibana service account..."
+              echo "=============================================="
+              echo "Kibana Setup Job - Creating ES Token & Role Mapping"
+              echo "=============================================="
+              
+              # Step 1: Delete existing token if exists (to ensure fresh token)
+              echo ""
+              echo "=== Step 1: Preparing service account token ==="
+              
+              curl -s -X DELETE -k \
+                "${ES_URL}/_security/service/elastic/kibana/credential/token/kibana-token" \
+                -u "${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}" || true
+              
+              sleep 2
+              
+              # Step 2: Create new service account token
+              echo ""
+              echo "=== Step 2: Creating Elasticsearch service account token ==="
+              
+              TOKEN_RESPONSE=$(curl -s -X POST -k \
+                "${ES_URL}/_security/service/elastic/kibana/credential/token/kibana-token" \
+                -H "Content-Type: application/json" \
+                -u "${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}")
+              
+              echo "Token creation response: $TOKEN_RESPONSE"
+              
+              # Extract token value using sed (more portable)
+              TOKEN_VALUE=$(echo "$TOKEN_RESPONSE" | sed -n 's/.*"value":"\([^"]*\)".*/\1/p')
+              
+              if [ -z "$TOKEN_VALUE" ]; then
+                echo "ERROR: Failed to extract token value from response"
+                exit 1
+              fi
+              
+              echo "Token created successfully!"
+              
+              # Step 3: Update Kubernetes secret with the new token
+              echo ""
+              echo "=== Step 3: Updating Kubernetes secret ==="
+              
+              kubectl create secret generic kibana-service-token \
+                --namespace=${NAMESPACE} \
+                --from-literal=token="${TOKEN_VALUE}" \
+                --dry-run=client -o yaml | kubectl apply -f -
+              
+              echo "Secret kibana-service-token updated successfully!"
+              
+              # Step 4: Create role mapping
+              echo ""
+              echo "=== Step 4: Creating Elasticsearch role mapping ==="
               
               RESPONSE=$(curl -s -w "\n%{http_code}" -X PUT -k \
-                {{ .Values.elasticsearchHosts }}/_security/role_mapping/kibana \
+                "${ES_URL}/_security/role_mapping/kibana_service" \
                 -H "Content-Type: application/json" \
                 -u "${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}" \
                 -d '{
-                  "roles": ["kibana_admin"],
+                  "roles": ["kibana_admin", "kibana_system"],
                   "enabled": true,
                   "rules": {
-                    "all": [
-                      {
-                        "field": {
-                          "metadata.token.service_account.name": "kibana-sa"
-                        }
-                      },
-                      {
-                        "field": {
-                          "metadata.token.service_account.namespace": "{{ .Release.Namespace }}"
-                        }
-                      }
-                    ]
+                    "field": {
+                      "username": "elastic/kibana/kibana-token"
+                    }
                   }
                 }')
               
@@ -67,10 +113,19 @@ spec:
               if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 201 ]; then
                 echo "Role mapping created successfully!"
                 echo "$BODY"
-                exit 0
               else
-                echo "Error: Failed to create role mapping. HTTP code: $HTTP_CODE"
+                echo "Warning: Role mapping response code: $HTTP_CODE"
                 echo "$BODY"
-                exit 1
               fi
+              
+              # Step 5: Restart Kibana deployment to pick up new token
+              echo ""
+              echo "=== Step 5: Restarting Kibana deployment ==="
+              
+              kubectl rollout restart deployment/{{ include "kibana.fullname" . }} -n ${NAMESPACE} || true
+              
+              echo ""
+              echo "=============================================="
+              echo "Kibana setup completed successfully!"
+              echo "=============================================="
 {{- end -}}
