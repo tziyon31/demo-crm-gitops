@@ -37,9 +37,7 @@ subjects:
   - kind: ServiceAccount
     name: {{ include "kibana.serviceAccountName" . }}
     namespace: {{ .Release.Namespace }}
-{{- end -}}
 ---
-{{- if .Values.serviceAccount.create -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
