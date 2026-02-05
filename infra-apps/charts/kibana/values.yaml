@@ -4,6 +4,12 @@ elasticsearchCertificateSecret: elasticsearch-master-certs
 elasticsearchCertificateAuthoritiesFile: ca.crt
 elasticsearchCredentialSecret: ""
 
+# Force Kibana to use service account token explicitly
+elasticsearch:
+  username: ""
+  password: ""
+  serviceAccountToken: /var/run/secrets/kubernetes.io/serviceaccount/token
+
 replicas: 1
 
 # Extra environment variables to append to this nodeGroup
@@ -70,10 +76,7 @@ kibanaConfig:
   kibana.yml: |
     server.host: "0.0.0.0"
     elasticsearch.hosts: ["https://elasticsearch-master.logging.svc:9200"]
-    # Token is read from file mounted at /var/run/kibana-token/token
-    # This is a projected token with audience: elasticsearch
-    # The init container copies it to /var/run/kibana-token/token (shared volume)
-    # Kibana reads it via ELASTICSEARCH_SERVICEACCOUNTTOKEN env var
+    # Token is read from Kubernetes service account token
     elasticsearch.serviceAccountToken: ${ELASTICSEARCH_SERVICEACCOUNTTOKEN}
     elasticsearch.ssl.verificationMode: none
 
