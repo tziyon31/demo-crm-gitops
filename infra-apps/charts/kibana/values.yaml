@@ -8,7 +8,7 @@ elasticsearchCredentialSecret: ""
 elasticsearch:
   username: ""
   password: ""
-  serviceAccountToken: /var/run/secrets/kubernetes.io/serviceaccount/token
+  serviceAccountToken: /usr/share/kibana/config/es-token/token
 
 replicas: 1
 
@@ -32,7 +32,10 @@ envFrom: []
 # A list of secrets and their paths to mount inside the pod
 # This is useful for mounting certificates for security and for mounting
 # the X-Pack license
-secretMounts: []
+secretMounts:
+  - name: es-token
+    secretName: kibana-service-token
+    path: /usr/share/kibana/config/es-token
 #  - name: kibana-keystore
 #    secretName: kibana-keystore
 #    path: /usr/share/kibana/data/kibana.keystore
@@ -76,7 +79,7 @@ kibanaConfig:
   kibana.yml: |
     server.host: "0.0.0.0"
     elasticsearch.hosts: ["https://elasticsearch-master.logging.svc:9200"]
-    # Token is read from Kubernetes service account token
+    # Token is read from the mounted Elasticsearch service account token secret
     elasticsearch.serviceAccountToken: ${ELASTICSEARCH_SERVICEACCOUNTTOKEN}
     elasticsearch.ssl.verificationMode: none
 

@@ -18,7 +18,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: create-role-mapping
-          image: curlimages/curl:latest
+          image: bitnami/kubectl:latest
           env:
             - name: ELASTICSEARCH_USERNAME
               valueFrom:
@@ -35,9 +35,37 @@ spec:
             - -c
             - |
               set -e
-              
+
+              echo "Deleting existing Kibana service token secret (if any)..."
+              kubectl delete secret kibana-service-token --ignore-not-found=true
+
+              echo "Creating Elasticsearch service account token..."
+              TOKEN_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST -k \
+                {{ .Values.elasticsearchHosts }}/_security/service/elastic/kibana/credential/token/kibana-{{ .Release.Namespace }} \
+                -u "${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}")
+
+              TOKEN_HTTP_CODE=$(echo "$TOKEN_RESPONSE" | tail -n1)
+              TOKEN_BODY=$(echo "$TOKEN_RESPONSE" | sed '$d')
+
+              if [ "$TOKEN_HTTP_CODE" -ne 200 ] && [ "$TOKEN_HTTP_CODE" -ne 201 ]; then
+                echo "Error: Failed to create service account token. HTTP code: $TOKEN_HTTP_CODE"
+                echo "$TOKEN_BODY"
+                exit 1
+              fi
+
+              TOKEN_VALUE=$(echo "$TOKEN_BODY" | sed -n 's/.*"value":"\\([^"]*\\)".*/\\1/p')
+              if [ -z "$TOKEN_VALUE" ]; then
+                echo "Error: Token value missing from Elasticsearch response."
+                echo "$TOKEN_BODY"
+                exit 1
+              fi
+
+              echo "Updating kibana-service-token secret..."
+              kubectl create secret generic kibana-service-token \
+                --from-literal=token="$TOKEN_VALUE" \
+                --dry-run=client -o yaml | kubectl apply -f -
+
               echo "Creating role mapping for Kibana service account..."
-              
               RESPONSE=$(curl -s -w "\n%{http_code}" -X PUT -k \
                 {{ .Values.elasticsearchHosts }}/_security/role_mapping/kibana \
                 -H "Content-Type: application/json" \
@@ -60,17 +88,19 @@ spec:
                     ]
                   }
                 }')
-              
+
               HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
               BODY=$(echo "$RESPONSE" | sed '$d')
-              
+
               if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 201 ]; then
                 echo "Role mapping created successfully!"
                 echo "$BODY"
-                exit 0
               else
                 echo "Error: Failed to create role mapping. HTTP code: $HTTP_CODE"
                 echo "$BODY"
                 exit 1
               fi
+
+              echo "Restarting Kibana deployment..."
+              kubectl rollout restart deployment {{ template "kibana.fullname" . }}
 {{- end -}}
