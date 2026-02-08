@@ -21,6 +21,8 @@ replicas: 1
 extraEnvs:
   - name: "NODE_OPTIONS"
     value: "--max-old-space-size=1800"
+  - name: "XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY"
+    value: "a1126716867a1fc1a1cd728ca54b9689214de43e936dea736758997e8cba0585"
 
 # Allows you to load environment variables from kubernetes secret or config map
 envFrom: []
