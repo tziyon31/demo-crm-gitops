@@ -14,6 +14,7 @@ This repository implements a **GitOps-based infrastructure and application manag
 
 - ✅ **Single Root Application** (`root-apps`) managing the entire stack
 - ✅ **Infrastructure as Code** - All infra components versioned and managed
+- ✅ **EFK Logging Stack** - Elasticsearch, Fluent Bit & Kibana
 - ✅ **Automated Sync** with self-healing capabilities
 - ✅ **Production-ready** infrastructure components
 - ✅ **Clean separation** between infrastructure and applications
@@ -22,27 +23,36 @@ This repository implements a **GitOps-based infrastructure and application manag
 
 ```
 demo-crm-gitops/
-├── apps/                          # ArgoCD Applications
-│   ├── app-of-apps.yaml          # Root application (root-apps)
-│   ├── infra-root.yaml           # Infrastructure root application
-│   ├── demo-crm-helm.yaml        # Demo CRM application
-│   └── infra/                    # Infrastructure applications
+├── apps/                              # ArgoCD Applications
+│   ├── app-of-apps.yaml              # Root application (root-apps)
+│   ├── infra-root.yaml               # Infrastructure root application
+│   ├── demo-crm-helm.yaml            # Demo CRM application
+│   ├── rando.yaml                    # Rando application
+│   └── infra/                        # Infrastructure applications
 │       ├── infra-cert-manager.yaml
 │       ├── infra-clusterissuer.yaml
-│       ├── infra-ingress-nginx-classic.yaml
+│       ├── infra-elasticsearch.yaml
+│       ├── infra-fluent-bit.yaml
+│       ├── infra-kibana.yaml
 │       ├── infra-mongodb-operator.yaml
 │       ├── infra-mongodb-community.yaml
+│       ├── ingress-nginx-classic-app.yaml
 │       └── namespaces-app.yaml
-├── infra-apps/                   # Infrastructure charts & manifests
-│   ├── charts/                   # Helm charts for infrastructure
+├── infra-apps/                       # Infrastructure charts & manifests
+│   ├── charts/                       # Helm charts for infrastructure
 │   │   ├── cert-manager/
+│   │   ├── community-operator/
+│   │   ├── community-operator-crds/
+│   │   ├── elasticsearch/
+│   │   ├── fluent-bit/
 │   │   ├── ingress-nginx-classic/
-│   │   └── community-operator/
-│   └── manifests/                # Kubernetes manifests
+│   │   └── kibana/
+│   └── manifests/                    # Kubernetes manifests
 │       ├── cert-manager/
+│       ├── logging/
 │       ├── mongodb/
 │       └── namespaces/
-└── argocd-install/                # ArgoCD installation manifests
+└── argocd-install/                    # ArgoCD installation manifests
     └── argo-cd/
 ```
 
@@ -58,8 +68,12 @@ root-apps (Root Application)
 │   ├── infra-cert-manager
 │   ├── infra-clusterissuer
 │   ├── infra-mongodb-operator
-│   └── infra-mongodb-community
-└── demo-crm-helm (Application)
+│   ├── infra-mongodb-community
+│   ├── infra-elasticsearch
+│   ├── infra-fluent-bit
+│   └── infra-kibana
+├── demo-crm-helm (Application)
+└── rando (Application)
 ```
 
 ### Infrastructure Components
@@ -71,6 +85,21 @@ root-apps (Root Application)
 | **ClusterIssuer** | Let's Encrypt certificate issuer | `cert-manager` |
 | **MongoDB Operator** | MongoDB Community Operator | `demo-crm` |
 | **MongoDB Community** | MongoDB replica set | `demo-crm` |
+| **Elasticsearch** | Search & analytics engine (logging backend) | `logging` |
+| **Fluent Bit** | Lightweight log forwarder (DaemonSet) | `logging` |
+| **Kibana** | Log visualization & dashboards | `logging` |
+
+### EFK Logging Stack
+
+The EFK (Elasticsearch, Fluent Bit, Kibana) stack is deployed in the `logging` namespace:
+
+- **Elasticsearch** - Single-node cluster with TLS enabled, stores all cluster logs
+- **Fluent Bit** - DaemonSet collecting container and systemd logs, using polling mode (`Inotify_Watcher Off`) for broad platform compatibility
+- **Kibana** - Connects to Elasticsearch via service account token, with a PostSync hook Job that automatically:
+  1. Creates an Elasticsearch service account token
+  2. Stores it in a Kubernetes secret
+  3. Configures role mappings
+  4. Restarts Kibana to pick up the token
 
 ## 🚀 Quick Start
 
@@ -116,7 +145,7 @@ argocd app get root-apps
 
 - **Path**: `apps/`
 - **Recurse**: `false` (explicit include pattern)
-- **Includes**: `infra-root.yaml`, `demo-crm-helm.yaml`
+- **Includes**: `infra-root.yaml`, `demo-crm-helm.yaml`, `rando.yaml`
 - **Sync Policy**: Automated with self-healing (prune disabled for safety)
 
 ### Infrastructure Root (`infra-root`)
@@ -131,8 +160,62 @@ argocd app get root-apps
 - **Self-Healing**: Enabled on all applications for automatic recovery
 - **Namespace Isolation**: Each component deployed to dedicated namespaces
 - **TLS/HTTPS**: Automatic certificate management via cert-manager
+- **Elasticsearch TLS**: Internal communication secured with auto-generated certificates
+- **Kibana Encryption**: `xpack.encryptedSavedObjects.encryptionKey` set for alerting and saved object encryption
 
-## 📊 Application Status
+## 📊 Observability & Dashboards
+
+Kibana dashboards are used to analyze cluster and application logs collected via the EFK stack.
+The dashboard was created following the **Tiered Dashboard Design** approach from the course.
+
+### Dashboard Structure
+
+#### Tier 1 – High-Level Metrics
+
+- Total log volume over time
+- Log activity trends across namespaces
+- Quick visibility into cluster-wide logging behavior
+
+#### Tier 2 – Detailed Analysis Panels
+
+- Color distribution of Rando events
+- Logs grouped over time
+- Namespace activity comparison
+- Discovery table showing latest log entries
+
+#### Error Investigation Panel
+
+A **Discover-based panel** is embedded in the dashboard, allowing:
+
+- Viewing the latest logs directly
+- Sorting by timestamp
+- Quickly identifying recent errors
+- Correlating events across namespaces and components
+
+This panel is used as a **fast troubleshooting entry point** instead of navigating manually to Discover.
+
+#### Red Event Percentage Metric
+
+A metric visualization calculates the percentage of logs containing `rando_details.color = "red"` using:
+
+```
+count(kql='rando_details.color:"red"') / count()
+```
+
+The metric:
+- Displays the percentage value
+- Uses **color thresholds**
+- Turns red when exceeding alert thresholds
+- Provides an immediate signal of abnormal red-event rates
+
+#### Pending Dashboard Enhancements
+
+The following panels are planned but not yet implemented:
+
+- Traffic split visualization between Demo CRM and Kibana via ingress logs
+- Unique MongoDB log counting visualization
+
+## 📈 Application Status
 
 Monitor your applications:
 
@@ -145,6 +228,9 @@ argocd app get root-apps --show-tree
 
 # Check sync status
 argocd app list
+
+# Check EFK stack
+kubectl get pods -n logging
 ```
 
 ## 🔄 GitOps Workflow
@@ -182,6 +268,22 @@ kubectl -n argocd get applications | grep infra
 
 # Verify resources
 kubectl get all -n <namespace>
+```
+
+### EFK Stack Issues
+
+```bash
+# Check Elasticsearch health
+kubectl exec -n logging elasticsearch-master-0 -- curl -sk https://localhost:9200/_cluster/health?pretty
+
+# Check Fluent Bit pods
+kubectl get pods -n logging -l app.kubernetes.io/name=fluent-bit
+
+# Check Kibana logs
+kubectl logs -n logging -l app=kibana --tail=50
+
+# Check Kibana setup hook job
+kubectl get jobs -n logging
 ```
 
 ## 📝 License
