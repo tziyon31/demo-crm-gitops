@@ -65,6 +65,7 @@ fluent-bit:
           Path /var/log/containers/*nginx*.log
           Parser nginx
           Tag nginx.*
+          Inotify_Watcher Off
           Refresh_Interval 5
           Rotate_Wait 30
           Mem_Buf_Limit 5MB
@@ -77,6 +78,7 @@ fluent-bit:
           Path /var/log/containers/*rando*.log
           Parser rando
           Tag rando.*
+          Inotify_Watcher Off
           Refresh_Interval 5
           Rotate_Wait 30
           Mem_Buf_Limit 5MB
@@ -88,6 +90,8 @@ fluent-bit:
           Path /var/log/containers/*.log
           multiline.parser docker, cri
           Tag kube.*
+          Inotify_Watcher Off
+          Refresh_Interval 5
           Mem_Buf_Limit 5MB
           Skip_Long_Lines On
 
