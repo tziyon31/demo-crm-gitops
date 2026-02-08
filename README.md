@@ -18,6 +18,7 @@ This repository implements a **GitOps-based infrastructure and application manag
 - ✅ **MongoDB integration** with connection management
 - ✅ **Configurable resources and scaling**
 - ✅ **GitOps-ready** for ArgoCD deployment
+- ✅ **Full observability** - EFK logging stack with tiered Kibana dashboards
 
 ## 📁 Repository Structure
 
