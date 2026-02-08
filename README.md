@@ -12,12 +12,12 @@ This repository implements a **GitOps-based infrastructure and application manag
 
 ### Key Features
 
-- ✅ **Single Root Application** (`root-apps`) managing the entire stack
-- ✅ **Infrastructure as Code** - All infra components versioned and managed
-- ✅ **EFK Logging Stack** - Elasticsearch, Fluent Bit & Kibana
-- ✅ **Automated Sync** with self-healing capabilities
-- ✅ **Production-ready** infrastructure components
-- ✅ **Clean separation** between infrastructure and applications
+- ✅ **Production-ready deployment configuration**
+- ✅ **High availability** with configurable replicas
+- ✅ **Automatic TLS** via cert-manager integration
+- ✅ **MongoDB integration** with connection management
+- ✅ **Configurable resources and scaling**
+- ✅ **GitOps-ready** for ArgoCD deployment
 
 ## 📁 Repository Structure
 
