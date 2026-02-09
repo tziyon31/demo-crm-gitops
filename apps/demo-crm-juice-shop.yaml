@@ -12,24 +12,16 @@ spec:
     server: https://kubernetes.default.svc
     namespace: juice-shop
 
-  source:
-    repoURL: https://charts.securecodebox.io
-    chart: juice-shop
-    targetRevision: 5.5.0
-    helm:
-      values: |
-        ingress:
-          enabled: true
-          className: "ingress-nginx"
-          pathType: Prefix
-          hosts:
-            - host: juice-shop.local
-              paths:
-                - path: /
-
-        service:
-          type: ClusterIP
-          port: 3000
+  sources:
+    - repoURL: https://charts.securecodebox.io
+      chart: juice-shop
+      targetRevision: 5.5.0
+      helm:
+        valueFiles:
+          - $values/infra-apps/values/juice-shop/values.yaml
+    - repoURL: https://github.com/tziyon31/demo-crm-gitops.git
+      targetRevision: main
+      ref: values
 
   syncPolicy:
     automated:

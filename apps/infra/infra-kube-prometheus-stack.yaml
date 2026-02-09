@@ -12,46 +12,16 @@ spec:
     server: https://kubernetes.default.svc
     namespace: monitoring
 
-  source:
-    repoURL: https://prometheus-community.github.io/helm-charts
-    chart: kube-prometheus-stack
-    targetRevision: 65.1.0
-    helm:
-      values: |
-        # Keep Grafana as ClusterIP (default) — no Ingress
-        grafana:
-          service:
-            type: ClusterIP
-
-        # Prometheus configuration
-        prometheus:
-          prometheusSpec:
-            retention: 7d
-            resources:
-              requests:
-                cpu: 250m
-                memory: 512Mi
-              limits:
-                cpu: "1"
-                memory: 2Gi
-            serviceMonitorSelectorNilUsesHelmValues: false
-            podMonitorSelectorNilUsesHelmValues: false
-
-        # Alertmanager — keep enabled with defaults
-        alertmanager:
-          alertmanagerSpec:
-            resources:
-              requests:
-                cpu: 100m
-                memory: 128Mi
-              limits:
-                cpu: 250m
-                memory: 256Mi
-
-        # Node exporter
-        prometheus-node-exporter:
-          hostRootFsMount:
-            enabled: false
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 65.1.0
+      helm:
+        valueFiles:
+          - $values/infra-apps/values/kube-prometheus-stack/values.yaml
+    - repoURL: https://github.com/tziyon31/demo-crm-gitops.git
+      targetRevision: main
+      ref: values
 
   syncPolicy:
     automated:

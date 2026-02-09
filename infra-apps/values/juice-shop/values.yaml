@@ -1,0 +1,12 @@
+ingress:
+  enabled: true
+  className: "ingress-nginx"
+  pathType: Prefix
+  hosts:
+    - host: juice-shop.local
+      paths:
+        - path: /
+
+service:
+  type: ClusterIP
+  port: 3000
