@@ -6,5 +6,11 @@ ingress-nginx:
     ingressClass: ingress-nginx
     service:
       type: LoadBalancer
-
-
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        namespace: monitoring
+        # Optional best practice (not required with your Prometheus selectors)
+        # additionalLabels:
+        #   release: infra-kube-prometheus-stack
