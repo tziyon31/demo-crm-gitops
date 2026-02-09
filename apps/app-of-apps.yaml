@@ -14,7 +14,7 @@ spec:
     path: apps
     directory:
       recurse: false
-      include: '{infra-root.yaml,demo-crm-helm.yaml,rando.yaml}'
+      include: '{infra-root.yaml,demo-crm-helm.yaml,rando.yaml,demo-crm-juice-shop.yaml}'
   syncPolicy:
     automated:
       selfHeal: true

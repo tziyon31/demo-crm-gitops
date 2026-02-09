@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo-crm-juice-shop
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: juice-shop
+
+  source:
+    repoURL: https://charts.securecodebox.io
+    chart: juice-shop
+    targetRevision: 5.5.0
+    helm:
+      values: |
+        ingress:
+          enabled: true
+          className: "ingress-nginx"
+          pathType: Prefix
+          hosts:
+            - host: juice-shop.local
+              paths:
+                - path: /
+
+        service:
+          type: ClusterIP
+          port: 3000
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
