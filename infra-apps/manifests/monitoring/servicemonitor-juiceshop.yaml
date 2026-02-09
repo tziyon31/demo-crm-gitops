@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: demo-crm-juice-shop
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: juice-shop
+spec:
+  namespaceSelector:
+    matchNames:
+      - juice-shop
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: demo-crm-juice-shop
+      app.kubernetes.io/name: juice-shop
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
